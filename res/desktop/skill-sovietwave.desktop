@@ -1,0 +1,11 @@
+[Desktop Entry]
+X-DBUS-StartupType=None
+X-KDE-StartupNotify=false
+Version=1.0
+Terminal=false
+Type=Application
+Name=SovietWave Radio
+Exec=mycroft-gui-app --hideTextInput --skill=skill-sovietwave.jarbasskills.home
+Icon=sovietwave_icon
+Categories=VoiceApp
+StartupNotify=false

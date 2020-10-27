@@ -1,0 +1,5 @@
+{
+    "android_icon": "/res/icon/sovietwave_icon.png",
+    "android_name": "SovietWave Radio",
+    "android_handler": "skill-sovietwave.jarbasskills.home"
+}
