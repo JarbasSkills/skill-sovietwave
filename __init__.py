@@ -28,9 +28,7 @@ class SovietWaveSkill(MediaCollectionSkill):
 
     @property
     def live_stream(self):
-        live_audio = dict(self.videos[0])
-        live_audio["url"] = "https://listen5.myradio24.com/sovietwave"
-        return live_audio
+        return "https://listen5.myradio24.com/sovietwave"
 
     def get_intro_message(self):
         self.speak_dialog("intro")
@@ -75,9 +73,9 @@ class SovietWaveSkill(MediaCollectionSkill):
         score = base_score
 
         if self.voc_match(phrase, "sovietwave"):
-            score += 0.15
+            score = 1.0
 
-        return score
+        return score, CPSMatchLevel.EXACT
 
 
 def create_skill():
