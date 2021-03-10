@@ -1,34 +1,31 @@
-from ovos_utils.waiting_for_mycroft.common_play import CPSMatchType, CPSMatchLevel
-from ovos_utils.skills.templates.media_collection import MediaCollectionSkill
+from pyvod import Collection
+from os.path import join, dirname, basename
+from ovos_utils.skills.templates.video_collection import VideoCollectionSkill
 from mycroft.skills.core import intent_file_handler
-from mycroft.util.parse import fuzzy_match, match_one
 from pyvod import Collection, Media
 from os.path import join, dirname, basename
-import random
-from json_database import JsonStorageXDG
-import datetime
+from ovos_utils.playback import CPSMatchType, CPSPlayback, CPSMatchConfidence
 
 
-class SovietWaveSkill(MediaCollectionSkill):
+class SovietWaveSkill(VideoCollectionSkill):
 
     def __init__(self):
-
         super().__init__("SovietWave")
         self.message_namespace = basename(dirname(__file__)) + ".jarbasskills"
+        self.default_image = join(dirname(__file__), "ui", "sovietwave_logo.png")
+        self.skill_logo = join(dirname(__file__), "ui", "sovietwave_icon.png")
+        self.skill_icon = join(dirname(__file__), "ui", "sovietwave_icon.png")
+        self.default_bg = join(dirname(__file__), "ui", "sovietwave_logo.png")
         self.supported_media = [CPSMatchType.GENERIC,
                                 CPSMatchType.VIDEO,
                                 CPSMatchType.RADIO,
                                 CPSMatchType.MUSIC]
         self.settings["max_duration"] = -1
         path = join(dirname(__file__), "res", "NewSovietWave.jsondb")
-        logo = join(dirname(__file__), "res", "sovietwave_logo.png")
         # load video catalog
-        self.media_collection = Collection("NewSovietWave", logo=logo,
+        self.media_collection = Collection("NewSovietWave",
+                                           logo=self.skill_logo,
                                            db_path=path)
-
-    @property
-    def live_stream(self):
-        return "https://listen5.myradio24.com/sovietwave"
 
     def get_intro_message(self):
         self.speak_dialog("intro")
@@ -38,44 +35,47 @@ class SovietWaveSkill(MediaCollectionSkill):
         self.handle_homescreen(message)
 
     # common play
-    def play_video(self, video_data):
-        if self.gui.connected:
-            super().play_video(video_data)
-        else:
-            self.audioservice.play(self.live_stream)
-
     def match_media_type(self, phrase, media_type):
-        match = None
         score = 0
 
         if self.voc_match(phrase,
                           "video") or media_type == CPSMatchType.VIDEO:
-            score += 0.05
-            match = CPSMatchLevel.GENERIC
+            score += 5
 
         if self.voc_match(phrase,
                           "radio") or media_type == CPSMatchType.RADIO:
-            score += 0.1
-            match = CPSMatchLevel.CATEGORY
+            score += 10
 
         if self.voc_match(phrase,
                           "music") or media_type == CPSMatchType.MUSIC:
-            score += 0.1
-            match = CPSMatchLevel.CATEGORY
+            score += 10
 
         if self.voc_match(phrase, "sovietwave"):
-            score += 0.3
-            match = CPSMatchLevel.TITLE
+            score += 30
 
-        return match, score
+        return score
 
-    def calc_final_score(self, phrase, base_score, match_level):
-        score = base_score
-
+    def CPS_search(self, phrase, media_type):
+        results = super().CPS_search(phrase, media_type)
         if self.voc_match(phrase, "sovietwave"):
-            score = 1.0
+            score = 80
+            if media_type == CPSMatchType.RADIO or \
+                    self.voc_match(phrase, "radio"):
+                score = 100
 
-        return score, CPSMatchLevel.EXACT
+            results.insert(0, {
+                "match_confidence": score,
+                "media_type": CPSMatchType.RADIO,
+                "playback": CPSPlayback.AUDIO,
+                "skill_icon": self.skill_icon,
+                "skill_logo": self.skill_logo,
+                "bg_image": self.default_bg,
+                "image": self.default_image,
+                "author": self.name,
+                "title": "SovietWave Radio",
+                "url": "https://listen5.myradio24.com/sovietwave"
+            })
+        return results
 
 
 def create_skill():

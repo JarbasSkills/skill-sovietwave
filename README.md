@@ -7,6 +7,7 @@
 SovietWave Radio for mycroft
 
 ![](./gui.png)
+![](./gui.gif)
 
 ## Installation Notes
 
