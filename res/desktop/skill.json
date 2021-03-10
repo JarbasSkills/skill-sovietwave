@@ -1,0 +1,22 @@
+{
+  "name": "SovietWave Radio Skill",
+  "skillname": "skill-sovietwave",
+  "authorname": "JarbasSkills",
+  "foldername": "",
+  "url": "https://github.com/JarbasSkills/skill-sovietwave",
+  "branch": "v0.1",
+  "desktopFile": false,
+  "warning": "",
+  "systemDeps": false,
+  "platforms": [
+    "arm",
+    "arm64",
+    "i386",
+    "x86_64",
+    "ia64"
+  ],
+  "examples": [
+    "open sovietwave menu",
+    "play sovietwave radio"
+  ]
+}

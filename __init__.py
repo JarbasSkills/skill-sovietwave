@@ -58,13 +58,10 @@ class SovietWaveSkill(VideoCollectionSkill):
     def CPS_search(self, phrase, media_type):
         results = super().CPS_search(phrase, media_type)
         if self.voc_match(phrase, "sovietwave"):
-            score = 75
-            if media_type == CPSMatchType.RADIO or self.voc_match(phrase,
-                                                                  "radio"):
+            score = 80
+            if media_type == CPSMatchType.RADIO or \
+                    self.voc_match(phrase, "radio"):
                 score = 100
-                # ensure priority for live stream
-                for idx, r in enumerate(results):
-                    results[idx]["match_confidence"] -= 5
 
             results.insert(0, {
                 "match_confidence": score,
