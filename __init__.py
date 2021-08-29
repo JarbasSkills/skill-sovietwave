@@ -6,6 +6,7 @@ from os.path import join, dirname, basename
 from ovos_workshop.frameworks.playback import CommonPlayMediaType, CommonPlayPlaybackType, \
     CommonPlayMatchConfidence
 from ovos_workshop.skills.video_collection import VideoCollectionSkill
+from ovos_workshop.skills.common_play import common_play_search
 
 
 class SovietWaveSkill(VideoCollectionSkill):
@@ -56,15 +57,15 @@ class SovietWaveSkill(VideoCollectionSkill):
 
         return score
 
-    def CPS_search(self, phrase, media_type):
-        results = super().CPS_search(phrase, media_type)
+    @common_play_search()
+    def search_sovietwave(self, phrase, media_type):
         if self.voc_match(phrase, "sovietwave"):
             score = 80
             if media_type == CommonPlayMediaType.RADIO or \
                     self.voc_match(phrase, "radio"):
                 score = 100
 
-            results.insert(0, {
+            yield {
                 "match_confidence": score,
                 "media_type": CommonPlayMediaType.RADIO,
                 "playback": CommonPlayPlaybackType.AUDIO,
@@ -75,8 +76,9 @@ class SovietWaveSkill(VideoCollectionSkill):
                 "author": self.name,
                 "title": "SovietWave Radio",
                 "url": "https://listen5.myradio24.com/sovietwave"
-            })
-        return results
+            }
+        for r in super().CPS_search(phrase, media_type):
+            yield r
 
 
 def create_skill():
