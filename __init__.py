@@ -36,7 +36,7 @@ class SovietWaveSkill(VideoCollectionSkill):
     def handle_homescreen_utterance(self, message):
         self.handle_homescreen(message)
 
-    # common play
+    # common play - video catalog template skill methods
     def match_media_type(self, phrase, media_type):
         score = 0
 
@@ -57,6 +57,8 @@ class SovietWaveSkill(VideoCollectionSkill):
 
         return score
 
+    # NOTE: video collection catalog search is handled in CPS_search method
+    # use the decorator to add extra search functions
     @common_play_search()
     def search_sovietwave(self, phrase, media_type):
         if self.voc_match(phrase, "sovietwave"):
@@ -64,7 +66,6 @@ class SovietWaveSkill(VideoCollectionSkill):
             if media_type == CommonPlayMediaType.RADIO or \
                     self.voc_match(phrase, "radio"):
                 score = 100
-
             yield {
                 "match_confidence": score,
                 "media_type": CommonPlayMediaType.RADIO,
@@ -77,8 +78,6 @@ class SovietWaveSkill(VideoCollectionSkill):
                 "title": "SovietWave Radio",
                 "url": "https://listen5.myradio24.com/sovietwave"
             }
-        for r in super().CPS_search(phrase, media_type):
-            yield r
 
 
 def create_skill():
