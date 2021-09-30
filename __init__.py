@@ -1,10 +1,8 @@
-from pyvod import Collection
-from os.path import join, dirname, basename
 from mycroft.skills.core import intent_file_handler
 from pyvod import Collection, Media
 from os.path import join, dirname, basename
-from ovos_workshop.frameworks.playback import CommonPlayMediaType, CommonPlayPlaybackType, \
-    CommonPlayMatchConfidence
+from ovos_plugin_common_play.ocp import MediaType, PlaybackType, \
+    MatchConfidence
 from ovos_workshop.skills.video_collection import VideoCollectionSkill
 from ovos_workshop.skills.common_play import common_play_search
 
@@ -18,10 +16,10 @@ class SovietWaveSkill(VideoCollectionSkill):
         self.skill_logo = join(dirname(__file__), "ui", "sovietwave_icon.png")
         self.skill_icon = join(dirname(__file__), "ui", "sovietwave_icon.png")
         self.default_bg = join(dirname(__file__), "ui", "sovietwave_logo.png")
-        self.supported_media = [CommonPlayMediaType.GENERIC,
-                                CommonPlayMediaType.VIDEO,
-                                CommonPlayMediaType.RADIO,
-                                CommonPlayMediaType.MUSIC]
+        self.supported_media = [MediaType.GENERIC,
+                                MediaType.VIDEO,
+                                MediaType.RADIO,
+                                MediaType.MUSIC]
         self.settings["max_duration"] = -1
         path = join(dirname(__file__), "res", "NewSovietWave.jsondb")
         # load video catalog
@@ -41,15 +39,15 @@ class SovietWaveSkill(VideoCollectionSkill):
         score = 0
 
         if self.voc_match(phrase,
-                          "video") or media_type == CommonPlayMediaType.VIDEO:
+                          "video") or media_type == MediaType.VIDEO:
             score += 5
 
         if self.voc_match(phrase,
-                          "radio") or media_type == CommonPlayMediaType.RADIO:
+                          "radio") or media_type == MediaType.RADIO:
             score += 10
 
         if self.voc_match(phrase,
-                          "music") or media_type == CommonPlayMediaType.MUSIC:
+                          "music") or media_type == MediaType.MUSIC:
             score += 10
 
         if self.voc_match(phrase, "sovietwave"):
@@ -57,19 +55,19 @@ class SovietWaveSkill(VideoCollectionSkill):
 
         return score
 
-    # NOTE: video collection catalog search is handled in CPS_search method
-    # use the decorator to add extra search functions
+    # NOTE: video collection catalog media is handled in CPS_search method
+    # use the decorator to add extra media functions
     @common_play_search()
     def search_sovietwave(self, phrase, media_type):
         if self.voc_match(phrase, "sovietwave"):
             score = 80
-            if media_type == CommonPlayMediaType.RADIO or \
+            if media_type == MediaType.RADIO or \
                     self.voc_match(phrase, "radio"):
                 score = 100
             yield {
                 "match_confidence": score,
-                "media_type": CommonPlayMediaType.RADIO,
-                "playback": CommonPlayPlaybackType.AUDIO,
+                "media_type": MediaType.RADIO,
+                "playback": PlaybackType.AUDIO,
                 "skill_icon": self.skill_icon,
                 "skill_logo": self.skill_logo,
                 "bg_image": self.default_bg,
