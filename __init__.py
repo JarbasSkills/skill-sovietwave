@@ -1,10 +1,10 @@
-from mycroft.skills.core import intent_file_handler
-from pyvod import Collection, Media
 from os.path import join, dirname, basename
-from ovos_plugin_common_play.ocp import MediaType, PlaybackType, \
-    MatchConfidence
+
+from mycroft.skills.core import intent_file_handler
+from ovos_plugin_common_play.ocp import MediaType, PlaybackType
+from ovos_workshop.skills.common_play import ocp_search
 from ovos_workshop.skills.video_collection import VideoCollectionSkill
-from ovos_workshop.skills.common_play import common_play_search
+from pyvod import Collection
 
 
 class SovietWaveSkill(VideoCollectionSkill):
@@ -12,7 +12,8 @@ class SovietWaveSkill(VideoCollectionSkill):
     def __init__(self):
         super().__init__("SovietWave")
         self.message_namespace = basename(dirname(__file__)) + ".jarbasskills"
-        self.default_image = join(dirname(__file__), "ui", "sovietwave_logo.png")
+        self.default_image = join(dirname(__file__), "ui",
+                                  "sovietwave_logo.png")
         self.skill_logo = join(dirname(__file__), "ui", "sovietwave_icon.png")
         self.skill_icon = join(dirname(__file__), "ui", "sovietwave_icon.png")
         self.default_bg = join(dirname(__file__), "ui", "sovietwave_logo.png")
@@ -57,7 +58,7 @@ class SovietWaveSkill(VideoCollectionSkill):
 
     # NOTE: video collection catalog media is handled in CPS_search method
     # use the decorator to add extra media functions
-    @common_play_search()
+    @ocp_search()
     def search_sovietwave(self, phrase, media_type):
         if self.voc_match(phrase, "sovietwave"):
             score = 80
