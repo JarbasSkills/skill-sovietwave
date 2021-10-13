@@ -12,9 +12,6 @@ class SovietWaveSkill(VideoCollectionSkill):
     def __init__(self):
         super().__init__("SovietWave")
         self.message_namespace = basename(dirname(__file__)) + ".jarbasskills"
-        self.default_image = join(dirname(__file__), "ui",
-                                  "sovietwave_logo.png")
-        self.skill_logo = join(dirname(__file__), "ui", "sovietwave_icon.png")
         self.skill_icon = join(dirname(__file__), "ui", "sovietwave_icon.png")
         self.default_bg = join(dirname(__file__), "ui", "sovietwave_logo.png")
         self.supported_media = [MediaType.GENERIC,
@@ -25,58 +22,45 @@ class SovietWaveSkill(VideoCollectionSkill):
         path = join(dirname(__file__), "res", "NewSovietWave.jsondb")
         # load video catalog
         self.media_collection = Collection("NewSovietWave",
-                                           logo=self.skill_logo,
+                                           logo=self.skill_icon,
                                            db_path=path)
-
-    def get_intro_message(self):
-        self.speak_dialog("intro")
 
     @intent_file_handler('home.intent')
     def handle_homescreen_utterance(self, message):
+        # VideoCollectionSkill method, reads self.media_collection
         self.handle_homescreen(message)
 
-    # common play - video catalog template skill methods
-    def match_media_type(self, phrase, media_type):
-        score = 0
-
-        if self.voc_match(phrase,
-                          "video") or media_type == MediaType.VIDEO:
-            score += 5
-
-        if self.voc_match(phrase,
-                          "radio") or media_type == MediaType.RADIO:
-            score += 10
-
-        if self.voc_match(phrase,
-                          "music") or media_type == MediaType.MUSIC:
-            score += 10
-
-        if self.voc_match(phrase, "sovietwave"):
-            score += 30
-
-        return score
-
-    # NOTE: video collection catalog media is handled in CPS_search method
-    # use the decorator to add extra media functions
     @ocp_search()
-    def search_sovietwave(self, phrase, media_type):
+    def ocp_sovietwave_radio(self, phrase, media_type):
         if self.voc_match(phrase, "sovietwave"):
             score = 80
             if media_type == MediaType.RADIO or \
                     self.voc_match(phrase, "radio"):
                 score = 100
-            yield {
-                "match_confidence": score,
-                "media_type": MediaType.RADIO,
-                "playback": PlaybackType.AUDIO,
-                "skill_icon": self.skill_icon,
-                "skill_logo": self.skill_logo,
-                "bg_image": self.default_bg,
-                "image": self.default_image,
-                "author": self.name,
-                "title": "SovietWave Radio",
-                "url": "https://listen5.myradio24.com/sovietwave"
-            }
+            pl = [
+                {
+                    "match_confidence": score,
+                    "media_type": MediaType.MUSIC,
+                    "uri": "youtube//" + entry["url"],
+                    "playback": PlaybackType.AUDIO,
+                    "image": entry["logo"],
+                    "length": entry.get("duration", 0) * 1000,
+                    "bg_image": self.default_bg,
+                    "skill_icon": self.skill_icon,
+                    "title": entry["title"]
+                } for entry in self.videos  # VideoCollectionSkill property
+            ]
+            if pl:
+                yield {
+                    "match_confidence": score,
+                    "media_type": MediaType.MUSIC,
+                    "playlist": pl,
+                    "playback": PlaybackType.AUDIO,
+                    "skill_icon": self.skill_icon,
+                    "image": self.default_bg,
+                    "bg_image": self.default_bg,
+                    "title": "SovietWave Radio"
+                }
 
 
 def create_skill():
