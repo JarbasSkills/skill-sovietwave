@@ -1,66 +1,57 @@
-from os.path import join, dirname, basename
+import random
+from os.path import join, dirname
 
-from mycroft.skills.core import intent_file_handler
 from ovos_plugin_common_play.ocp import MediaType, PlaybackType
-from ovos_workshop.skills.common_play import ocp_search
-from ovos_workshop.skills.video_collection import VideoCollectionSkill
-from pyvod import Collection
+from ovos_workshop.skills.common_play import OVOSCommonPlaybackSkill, \
+    ocp_search, ocp_featured_media
+from youtube_archivist import YoutubeArchivist
 
 
-class SovietWaveSkill(VideoCollectionSkill):
+class SovietWaveSkill(OVOSCommonPlaybackSkill):
 
     def __init__(self):
         super().__init__("SovietWave")
-        self.message_namespace = basename(dirname(__file__)) + ".jarbasskills"
         self.skill_icon = join(dirname(__file__), "ui", "sovietwave_icon.png")
         self.default_bg = join(dirname(__file__), "ui", "sovietwave_logo.png")
         self.supported_media = [MediaType.GENERIC,
-                                MediaType.VIDEO,
                                 MediaType.RADIO,
                                 MediaType.MUSIC]
-        self.settings["max_duration"] = -1
-        path = join(dirname(__file__), "res", "NewSovietWave.jsondb")
-        # load video catalog
-        self.media_collection = Collection("NewSovietWave",
-                                           logo=self.skill_icon,
-                                           db_path=path)
+        self.archive = YoutubeArchivist(db_name="SovietWave")
 
-    @intent_file_handler('home.intent')
-    def handle_homescreen_utterance(self, message):
-        # VideoCollectionSkill method, reads self.media_collection
-        self.handle_homescreen(message)
+    def initialize(self):
+        if len(self.archive.db) == 0:
+            # no database, sync right away
+            self.schedule_event(self._scheduled_update, 5)
+
+    def _scheduled_update(self):
+        self.update_db()
+        self.schedule_event(self._scheduled_update, random.randint(3600, 12 * 3600))  # every 6 hours
+
+    def update_db(self):
+        url = "https://www.youtube.com/c/NewSovietWave"
+        self.archive.archive(url)
+        self.archive.remove_unavailable()  # check if video is still available
 
     @ocp_search()
     def ocp_sovietwave_radio(self, phrase, media_type):
         if self.voc_match(phrase, "sovietwave"):
-            score = 80
-            if media_type == MediaType.RADIO or \
-                    self.voc_match(phrase, "radio"):
-                score = 100
-            pl = [
+            return self.featured_media()
+
+    @ocp_featured_media()
+    def featured_media(self):
+        return [
                 {
-                    "match_confidence": score,
+                    "match_confidence": 100,
                     "media_type": MediaType.MUSIC,
                     "uri": "youtube//" + entry["url"],
                     "playback": PlaybackType.AUDIO,
-                    "image": entry["logo"],
+                    "image": entry["thumbnail"],
                     "length": entry.get("duration", 0) * 1000,
                     "bg_image": self.default_bg,
                     "skill_icon": self.skill_icon,
                     "title": entry["title"]
-                } for entry in self.videos  # VideoCollectionSkill property
-            ]
-            if pl:
-                yield {
-                    "match_confidence": score,
-                    "media_type": MediaType.MUSIC,
-                    "playlist": pl,
-                    "playback": PlaybackType.AUDIO,
-                    "skill_icon": self.skill_icon,
-                    "image": self.default_bg,
-                    "bg_image": self.default_bg,
-                    "title": "SovietWave Radio"
-                }
+                } for entry in self.archive.sorted_entries()
+        ]
 
 
 def create_skill():
